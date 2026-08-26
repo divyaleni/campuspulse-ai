@@ -1,11 +1,11 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api/feedback";
+const API_URL =
+    "https://campuspulse-ai-q2ui.onrender.com/api/feedback";
 
 
 // Submit feedback
 export const submitFeedback = async (feedbackData) => {
-
     const response = await axios.post(
         API_URL,
         feedbackData
@@ -17,7 +17,6 @@ export const submitFeedback = async (feedbackData) => {
 
 // Get all feedback
 export const getFeedback = async () => {
-
     const response = await axios.get(
         API_URL
     );
@@ -28,9 +27,8 @@ export const getFeedback = async () => {
 
 // Get analytics
 export const getAnalytics = async () => {
-
     const response = await fetch(
-        "http://localhost:5000/api/feedback/analytics"
+        `${API_URL}/analytics`
     );
 
     if (!response.ok) {
@@ -39,9 +37,12 @@ export const getAnalytics = async () => {
 
     return await response.json();
 };
+
+
+// Get feedback list
 export const getFeedbacks = async () => {
     const response = await fetch(
-        "http://localhost:5000/api/feedback"
+        API_URL
     );
 
     if (!response.ok) {
