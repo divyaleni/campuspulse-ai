@@ -1,4 +1,4 @@
-```js
+
 const { db } = require("../config/firebase");
 
 const {
@@ -301,4 +301,4 @@ module.exports = {
     getFeedback
 
 };
-```
+
