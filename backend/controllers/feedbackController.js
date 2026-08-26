@@ -156,20 +156,10 @@ const submitFeedback = async (req, res) => {
 
     } catch (error) {
 
-        console.error(
-            "Feedback processing error:",
-            error
-        );
-
-
         res.status(500).json({
-
-            success: false,
-
-            message:
-                "Failed to process feedback"
-
-        });
+    success: false,
+    message: error.message
+});
 
     }
 
