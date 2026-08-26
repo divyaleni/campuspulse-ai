@@ -1,3 +1,4 @@
+```js
 const { db } = require("../config/firebase");
 
 const {
@@ -10,7 +11,6 @@ const {
 // ==========================================
 
 const submitFeedback = async (req, res) => {
-
     try {
 
         const {
@@ -25,8 +25,6 @@ const submitFeedback = async (req, res) => {
         // STUDENT IDENTIFICATION
         // ==========================================
 
-        // Temporary fallback until Firebase Auth
-        // token verification is connected.
         const userId =
             req.user?.uid ||
             req.body.userId ||
@@ -37,39 +35,50 @@ const submitFeedback = async (req, res) => {
         // 24-HOUR COOLDOWN CHECK
         // ==========================================
 
-       const existingSnapshot = await db
-    .collection("feedbacks")
-    .where("userId", "==", userId)
-    .get();
-
+        const existingSnapshot = await db
+            .collection("feedbacks")
+            .where("userId", "==", userId)
+            .get();
 
         const now = Date.now();
 
-        const cooldown = 24 * 60 * 60 * 1000;
+        const cooldown =
+            24 * 60 * 60 * 1000;
 
 
-       const recentSubmission = existingSnapshot.docs.find((doc) => {
+        const recentSubmission =
+            existingSnapshot.docs.find((doc) => {
 
-    const data = doc.data();
+                const data = doc.data();
 
-    if (
-        data.category !== category ||
-        data.target !== target ||
-        !data.createdAt
-    ) {
-        return false;
-    }
+                if (
+                    data.category !== category ||
+                    data.target !== target ||
+                    !data.createdAt
+                ) {
+                    return false;
+                }
 
-    let createdTime;
 
-    if (typeof data.createdAt.toDate === "function") {
-        createdTime = data.createdAt.toDate().getTime();
-    } else {
-        createdTime = new Date(data.createdAt).getTime();
-    }
+                let createdTime;
 
-    return now - createdTime < cooldown;
-});
+                if (
+                    data.createdAt &&
+                    typeof data.createdAt.toDate === "function"
+                ) {
+                    createdTime =
+                        data.createdAt.toDate().getTime();
+                } else {
+                    createdTime =
+                        new Date(data.createdAt).getTime();
+                }
+
+
+                return (
+                    now - createdTime < cooldown
+                );
+            });
+
 
         if (recentSubmission) {
 
@@ -81,7 +90,6 @@ const submitFeedback = async (req, res) => {
                     "You have already submitted feedback for this event, course, or facility within the last 24 hours."
 
             });
-
         }
 
 
@@ -94,6 +102,24 @@ const submitFeedback = async (req, res) => {
 
 
         // ==========================================
+        // ENSURE VALID SENTIMENT
+        // ==========================================
+
+        const allowedSentiments = [
+            "Positive",
+            "Negative",
+            "Neutral"
+        ];
+
+        const sentimentLabel =
+            allowedSentiments.includes(
+                sentimentResult.label
+            )
+                ? sentimentResult.label
+                : "Neutral";
+
+
+        // ==========================================
         // SAVE TO FIRESTORE
         // ==========================================
 
@@ -103,25 +129,26 @@ const submitFeedback = async (req, res) => {
 
                 category: category,
 
-                target: target,
+                target: target || "",
 
                 feedbackText: feedbackText,
 
-                anonymous: anonymous ?? true,
+                anonymous:
+                    anonymous ?? true,
 
                 userId: userId,
 
                 sentiment:
-                    sentimentResult.label,
+                    sentimentLabel,
 
                 sentimentScore:
                     sentimentResult.score,
 
                 positiveWords:
-                    sentimentResult.positiveWords,
+                    sentimentResult.positiveWords || [],
 
                 negativeWords:
-                    sentimentResult.negativeWords,
+                    sentimentResult.negativeWords || [],
 
                 classificationStatus:
                     "classified",
@@ -146,7 +173,7 @@ const submitFeedback = async (req, res) => {
                 feedbackRef.id,
 
             sentiment:
-                sentimentResult.label,
+                sentimentLabel,
 
             score:
                 sentimentResult.score
@@ -156,13 +183,19 @@ const submitFeedback = async (req, res) => {
 
     } catch (error) {
 
+        console.error(
+            "Feedback processing error:",
+            error
+        );
+
         res.status(500).json({
-    success: false,
-    message: error.message
-});
 
+            success: false,
+
+            message: error.message
+
+        });
     }
-
 };
 
 
@@ -187,7 +220,6 @@ const getFeedback = async (req, res) => {
 
             const data = doc.data();
 
-
             feedback.push({
 
                 id: doc.id,
@@ -196,7 +228,7 @@ const getFeedback = async (req, res) => {
                     data.category,
 
                 target:
-                    data.target,
+                    data.target || "",
 
                 feedbackText:
                     data.feedbackText,
@@ -211,7 +243,8 @@ const getFeedback = async (req, res) => {
                     data.sentimentScore,
 
                 classificationStatus:
-                    data.classificationStatus,
+                    data.classificationStatus ||
+                    "classified",
 
                 positiveWords:
                     data.positiveWords || [],
@@ -240,21 +273,26 @@ const getFeedback = async (req, res) => {
 
     } catch (error) {
 
-    console.error(
-        "Get feedback error:",
-        error
-    );
+        console.error(
+            "Get feedback error:",
+            error
+        );
 
-    res.status(500).json({
+        res.status(500).json({
 
-        success: false,
+            success: false,
 
-        message: error.message
+            message: error.message
 
-    });
+        });
 
+    }
 };
 
+
+// ==========================================
+// EXPORT
+// ==========================================
 
 module.exports = {
 
@@ -263,3 +301,4 @@ module.exports = {
     getFeedback
 
 };
+```
