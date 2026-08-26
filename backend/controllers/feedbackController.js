@@ -240,22 +240,18 @@ const getFeedback = async (req, res) => {
 
     } catch (error) {
 
-        console.error(
-            "Get feedback error:",
-            error
-        );
+    console.error(
+        "Get feedback error:",
+        error
+    );
 
+    res.status(500).json({
 
-        res.status(500).json({
+        success: false,
 
-            success: false,
+        message: error.message
 
-            message:
-                "Failed to retrieve feedback"
-
-        });
-
-    }
+    });
 
 };
 
